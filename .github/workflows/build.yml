@@ -1,0 +1,33 @@
+name: Build Godot Project
+
+on:
+  push:
+    branches:
+      - main
+      - build-*
+
+env:
+  GODOT_VERSION: '4.3'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+      - name: godot-setup
+        run: |
+          wget https://github.com/godotengine/godot/releases/download/${{ env.GODOT_VERSION }}-stable/Godot_v${{ env.GODOT_VERSION }}-stable_linux.x86_64.zip -O /tmp/godot.zip
+          unzip /tmp/godot.zip
+          ln -s Godot_v${GODOT_VERSION}-stable_linux_headless.64 /bin/godot
+          godot -v
+      - name: game-build
+        run: |
+          mkdir -p build
+          godot --headless --export "Linux/X11" build/game.x86_64 --quiet
+      - name: export
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-X11
+          path: build/game.x86_64
